@@ -257,6 +257,15 @@ simply time out after `DIGITAL_OUTPUT_MUTEX_TIMEOUT` and fail silently
 intended behavior. Keep custom `_init()`/`_operate()` overrides limited to
 direct hardware I/O, as `McpDigitalOutput` does.
 
+### 5. One instance per pin
+
+Each physical pin (or expander channel) must be owned by exactly one
+`DigitalOutput` / `McpDigitalOutput` instance. The per-object mutex serializes
+access within an instance, but two instances bound to the same pin are not
+synchronized with each other: their cached states will diverge and their writes
+will race. If multiple tasks must drive one output, share a single instance
+between them (its mutex makes that safe), rather than constructing one per task.
+
 ## Usage Examples
 
 ### 1. Basic Toggle (`LightToggle.ino`)

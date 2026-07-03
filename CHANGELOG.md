@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- Add "One instance per pin" note
+
 ### Changed
 
 - Fix PulseProgress example to work with Arduino IDE Serial Monitor
