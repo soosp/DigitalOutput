@@ -138,7 +138,41 @@ state:
   reported or saved as a real state change. Subject to the same mutex
   timeout caveat as `getState()`.
 
-### McpDigitalOutput
+* **`bool isPulsing()`**
+  Returns `true` while a timed pulse is active. Note it may briefly read
+  `true` for a pulse whose interval has already elapsed but which
+  `update()` has not yet retired; if you need "is there meaningful time
+  left" instead, test `remaining() > 0`.
+
+* **`uint32_t remaining()`**
+  Returns the milliseconds left in the active pulse — handy for progress
+  bars or countdown displays. Returns `0` when no pulse is active, and
+  also `0` once the interval has elapsed but `update()` has not yet
+  reverted the output (it never returns a spuriously large value).
+
+* **`Status getStatus()`**
+  Returns a coherent snapshot of all four status fields at once —
+  `state`, `baseline`, `pulsing`, and `remaining` — read under a single
+  lock acquisition:
+
+  ```cpp
+    struct Status {
+        State state;         // current logical state (transient during pulse)
+        State baseline;      // resting state the output reverts to
+        bool pulsing;        // true if a pulse is active
+        uint32_t remaining;  // milliseconds left in the pulse, or 0
+    };
+  ```
+
+  Prefer this over calling `getState()`, `getBaseline()`, `isPulsing()`,
+  and `remaining()` back-to-back: each of those takes and releases the
+  lock separately, so a pulse expiring between calls can yield an
+  inconsistent mix (e.g. `pulsing == true` alongside `remaining == 0` from
+  a slightly later instant). `getStatus()` guarantees every field
+  describes the same moment. See the `PulseProgress` example for a
+  snapshot-driven progress bar.
+
+### `McpDigitalOutput`
 
 `McpDigitalOutput` inherits every method above unchanged — `on()`, `off()`,
 `toggle()`, `pulse()`, `update()`, and `getState()` all behave identically

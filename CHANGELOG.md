@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- Add isPulsing() method
+- Add remaining() method
+- Add Status snapshot structure
+- Add getStatus() snapshot method
+
 ### Changed
 
 - Fix Changelog

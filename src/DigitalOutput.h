@@ -221,6 +221,82 @@ public:
         return baseline;
     }
 
+    /**
+     * @brief Reports whether a timed pulse is currently active.
+     *
+     * @note May briefly read true for a pulse whose interval has already
+     *       elapsed but which update() has not yet retired. Combine with
+     *       remaining() (or use getStatus()) if you need that distinction.
+     * @return true if a pulse is in progress. Subject to the same mutex
+     *         timeout caveat as getState().
+     */
+    bool isPulsing() const {
+        if (!_lock()) return _isPulsing;
+        bool pulsing = _isPulsing;
+        _unlock();
+        return pulsing;
+    }
+
+    /**
+     * @brief Returns the time left in the active pulse, in milliseconds.
+     *
+     * Useful for progress indicators. Returns 0 when no pulse is active,
+     * and also 0 once the interval has elapsed but update() has not yet
+     * reverted the output (never a spuriously large value).
+     *
+     * @return Milliseconds remaining, or 0. Subject to the same mutex
+     *         timeout caveat as getState().
+     */
+    uint32_t remaining() const {
+        if (!_lock()) return _remainingUnlocked();
+        uint32_t left = _remainingUnlocked();
+        _unlock();
+        return left;
+    }
+
+    /**
+     * @brief Immutable, point-in-time view of an output's status, as
+     *        returned by getStatus().
+     */
+    struct Status {
+        State state;         /**< Current logical state (transient during a pulse). */
+        State baseline;      /**< Resting state the output reverts to. */
+        bool pulsing;        /**< True if a pulse is currently active. */
+        uint32_t remaining;  /**< Milliseconds left in the pulse, or 0. */
+    };
+
+    /**
+     * @brief Returns a coherent snapshot of every status field, read
+     *        atomically under a single lock acquisition.
+     *
+     * Prefer this over calling getState(), getBaseline(), isPulsing(), and
+     * remaining() back-to-back: those each take and release the lock
+     * separately, so a pulse expiring between calls can yield an
+     * inconsistent mix (e.g. pulsing == true alongside remaining == 0 from
+     * a slightly later instant). getStatus() guarantees all four fields
+     * describe the same moment.
+     *
+     * @return A Status snapshot. On mutex timeout the fields are filled on
+     *         a best-effort basis without waiting, matching the behavior of
+     *         the individual getters.
+     */
+    Status getStatus() const {
+        Status snap;
+        if (!_lock()) {
+            snap.state = _state;
+            snap.baseline = _baselineUnlocked();
+            snap.pulsing = _isPulsing;
+            snap.remaining = _remainingUnlocked();
+            return snap;
+        }
+        snap.state = _state;
+        snap.baseline = _baselineUnlocked();
+        snap.pulsing = _isPulsing;
+        snap.remaining = _remainingUnlocked();
+        _unlock();
+        return snap;
+    }
+
 protected:
     int _pin;               /**< Assigned identifier (GPIO pin, I2C channel, etc.). */
     bool _activeState;      /**< Hardware level representing ON. */
@@ -232,6 +308,26 @@ protected:
     bool _isPulsing;        /**< True if a timed pulse operation is currently active. */
     uint32_t _pulseStartTime;  /**< Timestamp (in ms) when the active pulse started. */
     uint32_t _pulseInterval;   /**< Configured duration (in ms) of the active pulse. */
+
+    /**
+     * @brief Computes the baseline state without locking. Caller must hold
+     *        the mutex (or accept a best-effort read on timeout).
+     */
+    State _baselineUnlocked() const {
+        return _isPulsing ? _savedState : _state;
+    }
+
+    /**
+     * @brief Computes the remaining pulse time without locking. Caller must
+     *        hold the mutex (or accept a best-effort read on timeout).
+     *        Clamps to 0 to avoid unsigned underflow once the interval has
+     *        elapsed but update() has not yet run.
+     */
+    uint32_t _remainingUnlocked() const {
+        if (!_isPulsing) return 0;
+        uint32_t elapsed = millis() - _pulseStartTime; // wraparound-safe
+        return (elapsed >= _pulseInterval) ? 0 : (_pulseInterval - elapsed);
+    }
 
     /**
      * @brief Default hardware-level initialization for local GPIO pins.
