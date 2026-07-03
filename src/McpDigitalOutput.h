@@ -1,0 +1,106 @@
+#pragma once
+
+#include "DigitalOutput.h"
+#include <Adafruit_MCP23X17.h>
+#if !defined(ARDUINO_ARCH_AVR) && !defined(ARDUINO_ARCH_ESP8266)
+#include <mutex>
+#endif
+
+/**
+ * @class McpDigitalOutput
+ * @brief Subclass of DigitalOutput designed to control a digital output via an MCP23X17 I2C/SPI port expander.
+ * 
+ * This class inherits all state machine logic from the base DigitalOutput class, but overrides 
+ * the hardware-level interface to communicate with an Adafruit_MCP23X17 expander object.
+ * 
+ * @note Since the Adafruit_MCP23X17 library and the underlying I2C Wire library are NOT 
+ *       thread-safe by default, this subclass utilizes an external shared timed mutex 
+ *       to protect all hardware communication with the expander chip across multiple tasks.
+ */
+class McpDigitalOutput : public DigitalOutput {
+public:
+#if !defined(ARDUINO_ARCH_AVR) && !defined(ARDUINO_ARCH_ESP8266)
+    /**
+     * @brief Constructs a new McpDigitalOutput object with thread-safety for multi-core/RTOS platforms.
+     * 
+     * @param mcp Reference to the initialized Adafruit_MCP23X17 expander object.
+     * @param pin The expander pin number (0 to 15) where the digital output device is connected.
+     * @param shared_mutex Reference to a std::timed_mutex shared among ALL outputs on this specific MCP chip.
+     * @param active_low Set to true if the output triggers on LOW (default), or false for HIGH.
+     */
+    McpDigitalOutput(Adafruit_MCP23X17 &mcp, int pin, std::timed_mutex &shared_mutex, bool active_low = true) 
+        : DigitalOutput(pin, active_low), _mcp(mcp), _mcpMutex(&shared_mutex) {}
+#else
+    /**
+     * @brief Fallback constructor for single-core legacy platforms (AVR/ESP8266) where multi-threading is absent.
+     * 
+     * @param mcp Reference to the initialized Adafruit_MCP23X17 expander object.
+     * @param pin The expander pin number (0 to 15) where the digital output device is connected.
+     * @param active_low Set to true if the output triggers on LOW (default), or false for HIGH.
+     */
+    McpDigitalOutput(Adafruit_MCP23X17 &mcp, int pin, bool active_low = true) 
+        : DigitalOutput(pin, active_low), _mcp(mcp) {}
+#endif
+
+    /**
+     * @brief Destructor for McpDigitalOutput. 
+     * @note The referenced MCP23X17 object is managed outside this class and will not be destroyed.
+     */
+    ~McpDigitalOutput() override = default;
+
+protected:
+    /**
+     * @brief Hardware-level initialization for the MCP23X17 expander pin.
+     * 
+     * Overrides the base method to ensure a glitch-free initialization sequence on the expander 
+     * by locking the shared hardware mutex, applying digitalWrite, and then setting the pin mode.
+     */
+    void _init() override {
+        if (_extLock()) {
+            _mcp.digitalWrite(_pin, (_state == State::ON) ? _activeState : _inactiveState); // Write initial level first to prevent startup spikes
+            _mcp.pinMode(_pin, OUTPUT);
+            _extUnlock();
+        }
+    }
+
+    /**
+     * @brief Hardware-level operation that safely writes the logical state to the MCP23X17 expander pin.
+     * 
+     * Wraps the I2C/SPI transaction inside the external shared mutex to prevent collisions with other 
+     * tasks accessing the same expander chip.
+     */
+    void _operate() override {
+        if (_extLock()) {
+            _mcp.digitalWrite(_pin, (_state == State::ON) ? _activeState : _inactiveState);
+            _extUnlock();
+        }
+    }
+
+private:
+    Adafruit_MCP23X17 &_mcp; /**< Reference to the external MCP23X17 expander controller. */
+    
+#if !defined(ARDUINO_ARCH_AVR) && !defined(ARDUINO_ARCH_ESP8266)
+    std::timed_mutex *_mcpMutex; /**< Pointer to the shared hardware timed mutex. */
+
+    /**
+     * @brief Internal helper to lock the external shared expander mutex.
+     * @return true If the lock was successfully acquired.
+     * @return false If the operation timed out.
+     */
+    bool _extLock() {
+        if (!_mcpMutex) return true;
+        return _mcpMutex->try_lock_for(std::chrono::milliseconds(DIGITAL_OUTPUT_MUTEX_TIMEOUT));
+    }
+    
+    /**
+     * @brief Internal helper to unlock the external shared expander mutex.
+     */
+    void _extUnlock() {
+        if (_mcpMutex) _mcpMutex->unlock();
+    }
+#else
+    // Fallback stubs for legacy single-core architectures with no shared hardware locking required
+    bool _extLock()   { return true; }
+    void _extUnlock() {}
+#endif
+};
