@@ -3,7 +3,7 @@
 A lightweight, multi-platform, thread-safe, and glitch-free digital output
 (relay, LED, valve, buzzer) control library for Arduino.
 It features an extensible object-oriented architecture allowing you to
-seamlessly mixed local microcontroller GPIO pins and external I2C/SPI port
+seamlessly mix local microcontroller GPIO pins and external I2C/SPI port
 expanders (like the MCP23X17) under a single, unified polymorphic interface.
 
 ## Features
@@ -11,7 +11,7 @@ expanders (like the MCP23X17) under a single, unified polymorphic interface.
 * Thread-Safe Architecture: Uses a platform-aware `std::timed_mutex`
 implementation on multi-core/RTOS platforms (e.g., ESP32, ARM) while remaining
 lightweight and fully compatible with legacy single-core, single-thread
-architectures (AVR,ESP8266).
+architectures (AVR, ESP8266).
 * Glitch-Free Startup: Enforces output voltage level initialization before
 switching pin modes to output, eliminating unwanted startup spikes or
 accidental relay triggers.
@@ -20,9 +20,8 @@ accidental relay triggers.
 (e.g., I2C expanders, SPI shift registers, or MQTT virtual pins).
 * Universal Timed Pulses: Supports non-blocking POSITIVE (ON-OFF), NEGATIVE
 (OFF-ON), and TOGGLE timed operations using a precise `millis()` state machine.
-* Manual Override Safety: Any explicit hardware call (`on()`, `off()`,
-`toggle()`) able to automatically terminate active background pulse timers
-safely.
+* Manual Override Safety: Any explicit state-changing call automatically
+terminates any active background pulse timer (unless force is false).
 
 ## Installation
 
