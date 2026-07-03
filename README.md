@@ -2,25 +2,27 @@
 
 A lightweight, multi-platform, thread-safe, and glitch-free digital output
 (relay, LED, valve, buzzer) control library for Arduino.
-It features an extensible object-oriented architecture allowing you to seamlessly
-mixed local microcontroller GPIO pins and external I2C/SPI port expanders (like
-the MCP23X17) under a single, unified polymorphic interface.
+It features an extensible object-oriented architecture allowing you to
+seamlessly mixed local microcontroller GPIO pins and external I2C/SPI port
+expanders (like the MCP23X17) under a single, unified polymorphic interface.
 
 ## Features
 
 * Thread-Safe Architecture: Uses a platform-aware `std::timed_mutex`
 implementation on multi-core/RTOS platforms (e.g., ESP32, ARM) while remaining
-lightweight and fully compatible with legacy single-core architectures (AVR, ESP8266).
+lightweight and fully compatible with legacy single-core, single-thread
+architectures (AVR,ESP8266).
 * Glitch-Free Startup: Enforces output voltage level initialization before
-switching pin modes to output, eliminating unwanted startup spikes or accidental
-relay triggers.
+switching pin modes to output, eliminating unwanted startup spikes or
+accidental relay triggers.
 * Extensible Subclassing: Protected core hardware interfaces (`_init()` and
 `_operate()`) enable swift integration with alternative hardware interfaces
 (e.g., I2C expanders, SPI shift registers, or MQTT virtual pins).
 * Universal Timed Pulses: Supports non-blocking POSITIVE (ON-OFF), NEGATIVE
 (OFF-ON), and TOGGLE timed operations using a precise `millis()` state machine.
 * Manual Override Safety: Any explicit hardware call (`on()`, `off()`,
-`toggle()`) automatically terminates active background pulse timers safely.
+`toggle()`) able to automatically terminate active background pulse timers
+safely.
 
 ## Installation
 
@@ -180,10 +182,10 @@ enum class PulseType : uint8_t {
 
 ### 1. When to use update()
 
-The `update()` method is ONLY required if your code uses the timed `pulse()` function.
-If your application only relies on immediate `on()`, `off()`, and `toggle()`
- methods, you can completely omit calling `update()` in your main loop to save
- valuable CPU cycles.
+The `update()` method is ONLY required if your code uses the timed `pulse()`
+function. If your application only relies on immediate `on()`, `off()`, and
+`toggle()` methods, you can completely omit calling `update()` in your main
+loop to save valuable CPU cycles.
 
 ### 2. Multi-Threading & Mutex Timeout
 
