@@ -1,6 +1,6 @@
 {
   "name": "DigitalOutput",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A lightweight, multi-platform, thread-safe, and glitch-free digital output (relay, LED, valve) control library for Arduino. Seamlessly mixes local GPIOs and MCP23X17 expanders via polymorphism.",
   "keywords": [
     "relay",
