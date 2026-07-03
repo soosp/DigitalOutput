@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- Fix dependecy for Adruino Library Registry (again)
+
 ## [0.1.1]
 
 ### Changed
