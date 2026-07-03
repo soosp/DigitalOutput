@@ -45,6 +45,7 @@ public:
 
     /**
      * @brief Thread-safe initialization. Calls the protected _init() method.
+     * @param state The initial state of output.
      */
     bool begin(State state = State::OFF) {
         if (!_lock()) return false;
