@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - Add remaining() method
 - Add Status snapshot structure
 - Add getStatus() snapshot method
+- Add PulseProgress example
 
 ### Changed
 
