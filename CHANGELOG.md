@@ -11,7 +11,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - Fix PulseProgress example to work with Arduino IDE Serial Monitor.
-- Disable Serial in Morse example to avoid hanging in headless mode
+- Check Serial in Morse example to avoid hanging in headless CDC ports.
 
 ## [0.3.0]
 

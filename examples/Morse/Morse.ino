@@ -201,11 +201,9 @@ void morse_string(const char* str) {
  * @brief Standard Arduino setup function.
  */
 void setup() {
-    // In headless mode, using Serial with a USB CDC port prevents
-    // the system from booting, so Serial calls are disabled by default.
-    // Serial.begin(115200);
-    // while(!Serial);
-    // Serial.println("DigitalOutput Morse Demonstration Started.");
+    Serial.begin(115200);
+    if (Serial) // Is ESP32 CDC port is connected? Always true on UART.
+        Serial.println("DigitalOutput Morse Demonstration Started.");
 
     // Initialize the device safely in the OFF state
     led.begin(DigitalOutput::State::OFF);
@@ -222,6 +220,9 @@ void loop() {
     const char* message = "DigitalOutput library Morse demonstration.";
     // const char* message = "SOS";
 
-    // Serial.print("Starting message: "); Serial.println(message);
+    if (Serial) { // Is ESP32 CDC port is connected? Always true on UART.
+        Serial.print("Starting message: ");
+        Serial.println(message);
+    }
     morse_string(message);
 }
