@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- Fix PulseProgress example to work with Arduino IDE Serial Monitor
+
 ## [0.3.0]
 
 ### Added
