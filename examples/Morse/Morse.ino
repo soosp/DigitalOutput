@@ -201,9 +201,11 @@ void morse_string(const char* str) {
  * @brief Standard Arduino setup function.
  */
 void setup() {
-    Serial.begin(115200);
-    while(!Serial); // Wait for serial connection
-    Serial.println("DigitalOutput Morse Demonstration Started.");
+    // In headless mode, using Serial with a USB CDC port prevents
+    // the system from booting, so Serial calls are disabled by default.
+    // Serial.begin(115200);
+    // while(!Serial);
+    // Serial.println("DigitalOutput Morse Demonstration Started.");
 
     // Initialize the device safely in the OFF state
     led.begin(DigitalOutput::State::OFF);
@@ -213,10 +215,13 @@ void setup() {
  * @brief Standard Arduino application loop.
  */
 void loop() {
-    led.update();
+    // Actually, update isn't necessary here because each function use its own
+    // update loop.
+    // led.update();
 
     const char* message = "DigitalOutput library Morse demonstration.";
-    //const char* message = "SOS";
-    Serial.print("Starting message: "); Serial.println(message);
+    // const char* message = "SOS";
+
+    // Serial.print("Starting message: "); Serial.println(message);
     morse_string(message);
 }
