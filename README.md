@@ -174,10 +174,10 @@ state:
 
 ### `McpDigitalOutput`
 
-`McpDigitalOutput` inherits every method above unchanged — `on()`, `off()`,
-`toggle()`, `pulse()`, `update()`, and `getState()` all behave identically
-regardless of whether the output is a local pin or an expander pin. Only
-construction and the internal `_init()`/`_operate()` hardware calls differ.
+`McpDigitalOutput` inherits every method above unchanged — all behave
+identically regardless of whether the output is a local pin or an expander
+pin. Only construction and the internal `_init()`/`_operate()` hardware calls
+differ.
 
 ```cpp
 // Multi-core/RTOS platforms (ESP32, ARM, ...)

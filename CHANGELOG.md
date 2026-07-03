@@ -10,11 +10,12 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- Check Serial in Morse example to avoid hanging on headless CDC ports.
+- The list of methods has been removed from the introduction to McpDigitalOutput
 
 ### Fixed
 
 - Fix PulseProgress example to work with Arduino IDE Serial Monitor.
+- Check Serial in Morse example to avoid hanging on headless CDC ports.
 
 ## [0.3.0]
 
