@@ -7,26 +7,27 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - Add "One instance per pin" note
-- Add Doxygen comment about the parameter of begin() method.
+- Add Doxygen comment about the parameter of `begin()` method.
 
 ### Changed
 
-- The list of methods has been removed from the introduction to McpDigitalOutput
+- The list of methods has been removed from the introduction to `McpDigitalOutput`
 
 ### Fixed
 
-- Fix PulseProgress example to work with Arduino IDE Serial Monitor.
-- Check Serial in Morse example to avoid hanging on headless CDC ports.
+- Fix `PulseProgress` example to work with Arduino IDE Serial Monitor.
+- Check `Serial` in `Morse` example to avoid hanging on headless CDC ports.
+- Markdown fixes in Changelog
 
 ## [0.3.0]
 
 ### Added
 
-- Add isPulsing() method
-- Add remaining() method
-- Add Status snapshot structure
-- Add getStatus() snapshot method
-- Add PulseProgress example
+- Add `isPulsing()` method
+- Add `remaining()` method
+- Add `Status` snapshot structure
+- Add `getStatus()` snapshot method
+- Add `PulseProgress` example
 
 ### Changed
 
@@ -36,7 +37,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- Add getBaseline() method
+- Add `getBaseline()` method
 
 ### Changed
 
