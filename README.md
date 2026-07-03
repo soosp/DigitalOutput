@@ -126,9 +126,18 @@ state:
   transient pulsed state, not the baseline it will return to — e.g. during
   a `NEGATIVE` pulse, `getState()` returns `State::OFF` even though the
   output will revert to `State::ON` once the pulse expires. If you need
-  the resting baseline instead, track it yourself alongside `pulse()`
-  calls. If the mutex times out, the last cached value is returned without
-  waiting, which may be momentarily stale under heavy contention.
+  the resting baseline instead, use `getBaseline()`. If the mutex times
+  out, the last cached value is returned without waiting, which may be
+  momentarily stale under heavy contention.
+
+* **`State getBaseline()`**
+  Returns the resting state the output will settle into once any active
+  pulse expires, unaffected by a pulse currently in progress. When no
+  pulse is active, `getBaseline()` always equals `getState()`. Useful for
+  UI/status reporting (e.g. MQTT or Home Assistant state topics) and
+  persisting state across reboots, where a brief pulse shouldn't be
+  reported or saved as a real state change. Subject to the same mutex
+  timeout caveat as `getState()`.
 
 ### McpDigitalOutput
 

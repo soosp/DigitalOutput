@@ -186,11 +186,39 @@ public:
         _unlock();
     }
 
+    /**
+     * @brief Returns the current logical state of the output.
+     *
+     * @note While a timed pulse (see pulse()) is active, this reflects the
+     *       transient pulsed state, not the baseline the output will
+     *       revert to once the pulse expires. Use getBaseline() if you
+     *       need the resting state instead.
+     * @return The current State (ON or OFF). If the mutex times out, the
+     *         last cached value is returned without waiting, which may be
+     *         momentarily stale under heavy contention.
+     */
     State getState() const {
         if (!_lock()) return _state;
         State current = _state;
         _unlock();
         return current;
+    }
+
+    /**
+     * @brief Returns the resting ("baseline") state the output will settle
+     *        into once any active pulse expires.
+     *
+     * @note Unlike getState(), this is unaffected by a currently running
+     *       pulse. When no pulse is active, getBaseline() and getState()
+     *       always return the same value.
+     * @return The baseline State (ON or OFF). Subject to the same mutex
+     *         timeout caveat as getState().
+     */
+    State getBaseline() const {
+        if (!_lock()) return _isPulsing ? _savedState : _state;
+        State baseline = _isPulsing ? _savedState : _state;
+        _unlock();
+        return baseline;
     }
 
 protected:
