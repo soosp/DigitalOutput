@@ -240,12 +240,36 @@ loop to save valuable CPU cycles.
 
 ### 2. Multi-Threading & Mutex Timeout
 
-On RTOS-supported platforms, a fallback macro handles mutex lock recovery to
-prevent thread starvation if the hardware bus hangs:
+On RTOS-supported platforms every state-changing call acquires a
+`std::timed_mutex`. To stop a hung hardware bus from blocking a task forever,
+the lock uses a bounded wait whose length is set by the
+`DIGITAL_OUTPUT_MUTEX_TIMEOUT` macro (milliseconds, default `1000`):
 
 ```cpp
 #define DIGITAL_OUTPUT_MUTEX_TIMEOUT 1000 // Timeout in milliseconds
 ```
+
+**Overriding it correctly.** The macro is consumed inside the header's inline
+`_lock()`, so a `#define` placed in a single `.cpp`/`.ino` before including
+`DigitalOutput.h` changes that one translation unit only. In a project with
+more than one translation unit this is not merely incomplete — giving the
+inline `_lock()` different values in different units is an ODR violation.
+Define the override **once, globally**, so every translation unit sees the
+same value:
+
+* **PlatformIO** — add a build flag in `platformio.ini`:
+
+  ```ini
+  build_flags = -D DIGITAL_OUTPUT_MUTEX_TIMEOUT=2000
+  ```
+
+* **Arduino IDE** — create a `<SketchName>.ino.globals.h` file next to your
+  main `.ino` (e.g. `MySketch.ino.globals.h`). The IDE implicitly includes it
+  in every translation unit, so do not `#include` it yourself:
+
+  ```cpp
+  #define DIGITAL_OUTPUT_MUTEX_TIMEOUT 2000
+  ```
 
 ### 3. Interrupt Service Routines (ISR)
 
