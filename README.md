@@ -174,10 +174,11 @@ state:
 
 ### `McpDigitalOutput`
 
-`McpDigitalOutput` inherits every method above unchanged — all behave
-identically regardless of whether the output is a local pin or an expander
-pin. Only construction and the internal `_init()`/`_operate()` hardware calls
-differ.
+`McpDigitalOutput` is a child class to support digital oputputs of `MCP23X08`
+and `MCP23X17` I2C/SPI GPIO expander chips. It inherits every method above
+unchanged — all behave identically regardless of whether the output is a local
+pin or an expander pin. Only construction and the internal
+`_init()`/`_operate()` hardware calls differ.
 
 ```cpp
 // Multi-core/RTOS platforms (ESP32, ARM, ...)

@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- Add MCP23X08 expander chip support
+
 ## [0.3.1]
 
 ### Added
