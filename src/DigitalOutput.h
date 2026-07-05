@@ -51,9 +51,9 @@ public:
         if (!_lock()) return false;
         _isPulsing = false; // Reset pulse tracker on initialization
         _state = state;
-        _init(); // Hardware-specific setup
+        bool ok = _init(); // Hardware-specific setup; may fail on an expander bus timeout
         _unlock();
-        return true;
+        return ok;
     }
 
     /**
@@ -66,9 +66,15 @@ public:
         if (!_lock()) return false;
         bool retval = (!_isPulsing || force);
         if (retval) {
+            State prevState = _state;
+            bool  prevPulsing = _isPulsing;
             _isPulsing = false; // Manual override terminates any active timed pulse
             _state = State::ON;
-            _operate();
+            if (!_operate()) { // Roll back cached state if the hardware write failed
+                _state = prevState;
+                _isPulsing = prevPulsing;
+                retval = false;
+            }
         }
         _unlock();
         return retval;
@@ -84,9 +90,15 @@ public:
         if (!_lock()) return false;
         bool retval = (!_isPulsing || force);
         if (retval) {
+            State prevState = _state;
+            bool  prevPulsing = _isPulsing;
             _isPulsing = false; // Manual override terminates any active timed pulse
             _state = State::OFF;
-            _operate();
+            if (!_operate()) { // Roll back cached state if the hardware write failed
+                _state = prevState;
+                _isPulsing = prevPulsing;
+                retval = false;
+            }
         }
         _unlock();
         return retval;
@@ -104,9 +116,15 @@ public:
         if (retval) {
             // If a pulse is active, we toggle based on the actual transient state
             // but stop the pulse tracker
+            State prevState = _state;
+            bool  prevPulsing = _isPulsing;
             _isPulsing = false; // Manual override terminates any active timed pulse
             _state = (_state == State::ON) ? State::OFF : State::ON;
-            _operate();
+            if (!_operate()) { // Roll back cached state if the hardware write failed
+                _state = prevState;
+                _isPulsing = prevPulsing;
+                retval = false;
+            }
         }
         _unlock();
         return retval;
@@ -155,13 +173,28 @@ public:
                 }
             }
 
+            // Snapshot every field this branch mutates, so a failed hardware
+            // write can be fully rolled back (leaving any prior pulse intact).
+            State    prevState = _state;
+            State    prevSaved = _savedState;
+            uint32_t prevStart = _pulseStartTime;
+            uint32_t prevInterval = _pulseInterval;
+            bool     prevPulsing = _isPulsing;
+
             _state = targetState;
             _savedState = recoveryState;
             _pulseStartTime = millis();
             _pulseInterval = interval;
             _isPulsing = true;
 
-            _operate();
+            if (!_operate()) { // Roll back the whole pulse if the hardware write failed
+                _state = prevState;
+                _savedState = prevSaved;
+                _pulseStartTime = prevStart;
+                _pulseInterval = prevInterval;
+                _isPulsing = prevPulsing;
+                retval = false;
+            }
         }
         _unlock();
         return retval;
@@ -180,9 +213,15 @@ public:
         if (!_lock()) return;
         // Re-verify inside the protected context
         if (_isPulsing && (millis() - _pulseStartTime >= _pulseInterval)) {
+            State prevState = _state;
             _state = _savedState; // Revert to the dynamically saved recovery state
             _isPulsing = false;
-            _operate();
+            if (!_operate()) {
+                // Hardware write failed: keep the pulse "expired but pending" so
+                // the next update() retries the revert instead of losing it.
+                _state = prevState;
+                _isPulsing = true;
+            }
         }
         _unlock();
     }
@@ -333,19 +372,26 @@ protected:
     /**
      * @brief Default hardware-level initialization for local GPIO pins.
      * @note Overridable by subclasses to implement alternative hardware (e.g., I2C expanders).
+     * @return true if the hardware was initialized successfully. Overrides that
+     *         can fail (e.g. an expander whose bus lock times out) should return
+     *         false so the caller can roll back its state.
      */
-    virtual void _init() {
+    virtual bool _init() {
         // Enforce glitch-free sequence: write level before setting output mode
         digitalWrite(_pin, (_state == State::ON) ? _activeState : _inactiveState);
         pinMode(_pin, OUTPUT);
+        return true; // A direct GPIO write cannot fail once the object mutex is held
     }
 
     /**
      * @brief Default hardware-level operation for local GPIO pins.
      * @note Overridable by subclasses to write to alternative interfaces.
+     * @return true if the hardware write succeeded. Overrides that can fail
+     *         should return false so the caller can roll back its cached state.
      */
-    virtual void _operate() {
+    virtual bool _operate() {
         digitalWrite(_pin, (_state == State::ON) ? _activeState : _inactiveState);
+        return true; // A direct GPIO write cannot fail once the object mutex is held
     }
 
 private:

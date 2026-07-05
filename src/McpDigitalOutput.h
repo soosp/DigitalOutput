@@ -77,12 +77,14 @@ protected:
      * Overrides the base method to ensure a glitch-free initialization sequence on the expander 
      * by locking the shared hardware mutex, applying digitalWrite, and then setting the pin mode.
      */
-    void _init() override {
+    bool _init() override {
         if (_extLock()) {
             _mcp.digitalWrite(_pin, (_state == State::ON) ? _activeState : _inactiveState); // Write initial level first to prevent startup spikes
             _mcp.pinMode(_pin, OUTPUT);
             _extUnlock();
+            return true;
         }
+        return false; // Bus mutex timed out: report failure so the caller can roll back
     }
 
     /**
@@ -91,11 +93,13 @@ protected:
      * Wraps the I2C/SPI transaction inside the external shared mutex to prevent collisions with other 
      * tasks accessing the same expander chip.
      */
-    void _operate() override {
+    bool _operate() override {
         if (_extLock()) {
             _mcp.digitalWrite(_pin, (_state == State::ON) ? _activeState : _inactiveState);
             _extUnlock();
+            return true;
         }
+        return false; // Bus mutex timed out: report failure so the caller can roll back
     }
 
 private:

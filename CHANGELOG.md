@@ -8,6 +8,16 @@ All notable changes to this project will be documented in this file.
 
 - Add MCP23X08 expander chip support
 
+### Changed
+
+- `_init()` and `_operate()` hardware hooks now return `bool` to report
+  success or failure
+
+### Fixed
+
+- Roll back cached state and return `false` when a hardware write fails,
+  instead of reporting success with a state that diverges from the hardware
+
 ## [0.3.1]
 
 ### Added

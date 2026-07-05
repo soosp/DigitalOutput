@@ -82,8 +82,10 @@ state:
 * **`bool begin(State state = State::OFF)`**
   Initializes the hardware safely: the output level is written *before* the
   pin mode is switched to `OUTPUT`, so no relay chatter or LED flash occurs
-  on boot. Also clears any leftover pulse state. Returns `false` only if the
-  mutex could not be acquired within `DIGITAL_OUTPUT_MUTEX_TIMEOUT`.
+  on boot. Also clears any leftover pulse state. Returns `false` if the
+  object mutex could not be acquired within `DIGITAL_OUTPUT_MUTEX_TIMEOUT`,
+  or if the hardware initialization itself failed (e.g. a shared expander
+  bus lock timed out).
 
 * **`bool on(bool force = true)`** / **`bool off(bool force = true)`** /
   **`bool toggle(bool force = true)`**
@@ -94,9 +96,12 @@ state:
     state is applied immediately.
   * `force = false` — the call is rejected (no hardware change) while a
     pulse is running; it only takes effect once the pulse has finished.
-  All three return `true` on success and `false` if rejected by `force`
-  *or* if the mutex timed out — the two cases are not distinguishable from
-  the return value alone.
+  All three return `true` on success and `false` if rejected by `force`,
+  if the object mutex timed out, *or* if the underlying hardware write
+  failed (e.g. a shared expander bus lock timed out). In the last case the
+  cached state is rolled back, so a `false` return always means the output
+  was left unchanged — these causes are not distinguishable from the return
+  value alone.
 
 * **`bool pulse(uint32_t interval, PulseType type = PulseType::POSITIVE,`**
   **`bool force = true)`**
@@ -110,7 +115,10 @@ state:
   pulse is already in progress, it inverts from the *original* baseline
   state (the one saved before the first pulse started), not from the
   transient in-pulse state — so back-to-back pulses never drift away from
-  the intended resting state.
+  the intended resting state. Returns `false` (and starts no pulse) if
+  rejected by `force`, if the object mutex timed out, or if the initial
+  hardware write failed; a `false` return always leaves any prior pulse
+  and the output state untouched.
 
 * **`void update()`**
   Must be called periodically (typically once per `loop()` iteration) for
@@ -257,6 +265,14 @@ simply time out after `DIGITAL_OUTPUT_MUTEX_TIMEOUT` and fail silently
 (returning `false`) rather than deadlock — but this is almost never the
 intended behavior. Keep custom `_init()`/`_operate()` overrides limited to
 direct hardware I/O, as `McpDigitalOutput` does.
+
+Both hooks return `bool`: return `true` when the hardware write succeeds and
+`false` when it cannot be performed (for example, when a shared bus lock times
+out). The base class uses this to keep its cached state honest — if an override
+returns `false`, the calling method rolls back the state change it was about to
+apply and itself returns `false`, so `getState()` never reports a level that was
+never written. An override that always succeeds (like a direct GPIO write)
+should simply `return true`.
 
 ### 5. One instance per pin
 
