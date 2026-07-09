@@ -267,12 +267,14 @@ same value:
   main `.ino`. The ESP32 Arduino Core passes `build_opt.h` to every translation
   unit — including the library — via gcc's @file mechanism, so the value stays
   consistent everywhere. It holds compiler flags, not #defines (despite the .h
-  name), and has no comment support, so keep it to bare -D flags. This works
-  identically under arduino-cli (the file just lives in the sketch folder).
+  name), and has no comment support, so keep it to bare -D flags:
 
   ```cpp
-  #define DIGITAL_OUTPUT_MUTEX_TIMEOUT 2000
+  -DDIGITAL_OUTPUT_MUTEX_TIMEOUT=2000
   ```
+
+  This works identically under arduino-cli (the file just lives in the sketch
+  folder).
 
 ### 3. Interrupt Service Routines (ISR)
 
