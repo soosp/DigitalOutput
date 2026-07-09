@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.
 
 - Roll back cached state and return `false` when a hardware write fails,
   instead of reporting success with a state that diverges from the hardware.
+- Fixed instructions about passing global macro definitions in the Arduino IDE.
 
 ## [0.3.1]
 

@@ -240,7 +240,7 @@ loop to save valuable CPU cycles.
 
 ### 2. Multi-Threading & Mutex Timeout
 
-On RTOS-supported platforms every state-changing call acquires a
+On RTOS-supported platforms (e.g. ESP32) every state-changing call acquires a
 `std::timed_mutex`. To stop a hung hardware bus from blocking a task forever,
 the lock uses a bounded wait whose length is set by the
 `DIGITAL_OUTPUT_MUTEX_TIMEOUT` macro (milliseconds, default `1000`):
@@ -263,9 +263,12 @@ same value:
   build_flags = -D DIGITAL_OUTPUT_MUTEX_TIMEOUT=2000
   ```
 
-* **Arduino IDE** — create a `<SketchName>.ino.globals.h` file next to your
-  main `.ino` (e.g. `MySketch.ino.globals.h`). The IDE implicitly includes it
-  in every translation unit, so do not `#include` it yourself:
+* **Arduino IDE** — **ESP32 Core**; create a `build_opt.h` file next to your
+  main `.ino`. The ESP32 Arduino Core passes `build_opt.h` to every translation
+  unit — including the library — via gcc's @file mechanism, so the value stays
+  consistent everywhere. It holds compiler flags, not #defines (despite the .h
+  name), and has no comment support, so keep it to bare -D flags. This works
+  identically under arduino-cli (the file just lives in the sketch folder).
 
   ```cpp
   #define DIGITAL_OUTPUT_MUTEX_TIMEOUT 2000
