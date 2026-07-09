@@ -1,8 +1,8 @@
 /**
  * @file MixedRelays.ino
  * @brief Example sketch demonstrating polymorphic and thread-safe control of
- *        both local GPIO, MCP23X08 and MCP23X17 expander-based digital outputs
- *        using a unified array.
+ *        both local GPIO, MCP23008 and MCP23017 I2C expander-based digital
+ *        outputs using a unified array.
  * 
  * This example showcases how the base DigitalOutput class acts as a generic
  * interface, allowing the application loop to interact with different hardware

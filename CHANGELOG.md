@@ -8,17 +8,17 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- Add MCP23X08 expander chip support
+- Add MCP23X08 expander chip support.
 
 ### Changed
 
 - `_init()` and `_operate()` hardware hooks now return `bool` to report
-  success or failure
+  success or failure.
 
 ### Fixed
 
 - Roll back cached state and return `false` when a hardware write fails,
-  instead of reporting success with a state that diverges from the hardware
+  instead of reporting success with a state that diverges from the hardware.
 
 ## [0.3.1]
 
@@ -29,49 +29,49 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- The list of methods has been removed from the introduction to `McpDigitalOutput`
+- The list of methods has been removed from the introduction to `McpDigitalOutput`.
 
 ### Fixed
 
 - Fix `PulseProgress` example to work with Arduino IDE Serial Monitor.
 - Check `Serial` in `Morse` example to avoid hanging on headless CDC ports.
-- Markdown fixes in Changelog
+- Markdown fixes in Changelog.
 
 ## [0.3.0]
 
 ### Added
 
-- Add `isPulsing()` method
-- Add `remaining()` method
-- Add `Status` snapshot structure
-- Add `getStatus()` snapshot method
-- Add `PulseProgress` example
+- Add `isPulsing()` method.
+- Add `remaining()` method.
+- Add `Status` snapshot structure.
+- Add `getStatus()` snapshot method.
+- Add `PulseProgress` example.
 
 ### Changed
 
-- Fix Changelog
+- Fix Changelog.
 
 ## [0.2.0]
 
 ### Added
 
-- Add `getBaseline()` method
+- Add `getBaseline()` method.
 
 ### Changed
 
-- Minor documentation fixes
+- Minor documentation fixes.
 
 ## [0.1.2]
 
 ### Changed
 
-- Fix dependecy for Adruino Library Registry (again)
+- Fix dependecy for Adruino Library Registry (again).
 
 ## [0.1.1]
 
 ### Changed
 
-- Fix dependecy for Adruino Library Registry
+- Fix dependecy for Adruino Library Registry.
 
 ## [0.1.0]
 

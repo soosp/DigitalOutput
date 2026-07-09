@@ -103,8 +103,8 @@ state:
   was left unchanged — these causes are not distinguishable from the return
   value alone.
 
-* **`bool pulse(uint32_t interval, PulseType type = PulseType::POSITIVE,`**
-  **`bool force = true)`**
+* **`bool pulse(uint32_t interval, PulseType type = PulseType::POSITIVE,
+  bool force = true)`**
   Starts a non-blocking timed pulse of `interval` milliseconds. `force`
   works the same way as above, but applies to an already-running pulse
   instead of a steady state: with `force = false`, calling `pulse()` again
@@ -425,4 +425,4 @@ void loop() {
 
 ## License
 
-MIT
+MIT. See [LICENSE](LICENSE).
