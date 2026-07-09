@@ -269,7 +269,7 @@ same value:
   consistent everywhere. It holds compiler flags, not #defines (despite the .h
   name), and has no comment support, so keep it to bare -D flags:
 
-  ```cpp
+  ```ini
   -DDIGITAL_OUTPUT_MUTEX_TIMEOUT=2000
   ```
 
