@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - Fix dependency to Adafruit MCP23017 Arduino Library in library.properties.
+- Documentation fixes
 
 ## [0.4.0]
 
